@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { HashRouter, NavLink, Route, Routes } from 'react-router-dom';
+import { applyFont } from './lib/fonts';
+import { loadSettings } from './lib/storage';
 import Dashboard from './pages/Dashboard';
 import Generator from './pages/Generator';
 import Guide from './pages/Guide';
@@ -14,6 +17,10 @@ const NAV = [
 ];
 
 export default function App() {
+  useEffect(() => {
+    applyFont(loadSettings().fontFamily);
+  }, []);
+
   return (
     <HashRouter>
       <div className="layout">

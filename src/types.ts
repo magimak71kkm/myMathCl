@@ -69,6 +69,8 @@ export interface AppSettings {
   compatModel: string;
   /** 시험지 헤더에 인쇄되는 학원명 */
   academyName: string;
+  /** 화면·인쇄 글꼴 (lib/fonts.ts의 FontOption id) */
+  fontFamily: string;
 }
 
 export interface GenerateRequest {

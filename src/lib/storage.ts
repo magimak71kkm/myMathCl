@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   compatApiKey: '',
   compatModel: '',
   academyName: '',
+  fontFamily: 'system',
 };
 
 export function loadSettings(): AppSettings {

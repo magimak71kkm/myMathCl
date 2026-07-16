@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { downloadBackup, importBackupFile } from '../lib/backup';
+import { applyFont, FONT_OPTIONS } from '../lib/fonts';
 import { generateProblems } from '../lib/providers';
 import { loadHistory, loadSettings, saveSettings } from '../lib/storage';
 import type { AppSettings } from '../types';
@@ -15,6 +16,14 @@ export default function Settings() {
   function update<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
     setSettings((s) => ({ ...s, [key]: value }));
     setSaved(false);
+  }
+
+  /** 글꼴은 즉시 적용·저장 (미리보기를 겸함) */
+  function changeFont(id: string) {
+    const next = { ...settings, fontFamily: id };
+    setSettings(next);
+    saveSettings(next);
+    applyFont(id);
   }
 
   function onSave() {
@@ -94,6 +103,21 @@ export default function Settings() {
             value={settings.academyName}
             onChange={(e) => update('academyName', e.target.value)}
           />
+        </div>
+
+        <div className="form-row">
+          <label className="form-label">글꼴 (화면·인쇄 공통)</label>
+          <select value={settings.fontFamily} onChange={(e) => changeFont(e.target.value)}>
+            {FONT_OPTIONS.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+          <p className="field-hint">
+            선택 즉시 적용됩니다. 시험지 인쇄에도 같은 글꼴이 사용됩니다. — 미리보기: 이차함수
+            y=ax²+bx+c 의 그래프 1234
+          </p>
         </div>
 
         {settings.provider === 'gemini' ? (
