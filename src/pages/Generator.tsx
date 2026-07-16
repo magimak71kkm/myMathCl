@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import ExcelMenu from '../components/ExcelMenu';
 import ProblemCard from '../components/ProblemCard';
 import SimilarPanel from '../components/SimilarPanel';
-import { CURRICULUM, LEVELS } from '../data/curriculum';
+import { ALL_TOPICS, CURRICULUM, LEVELS } from '../data/curriculum';
 import { emailProblemSet } from '../lib/exportText';
 import { generateProblems } from '../lib/providers';
 import { loadSettings, saveProblemSet } from '../lib/storage';
@@ -17,6 +17,8 @@ export default function Generator() {
   const [level, setLevel] = useState<SchoolLevel>('중1');
   const [topic, setTopic] = useState<string>(CURRICULUM['중1'][0]);
   const [customTopic, setCustomTopic] = useState('');
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [suggestIndex, setSuggestIndex] = useState(-1);
   const [types, setTypes] = useState<ProblemType[]>(['multiple_choice']);
   const [difficulty, setDifficulty] = useState<Difficulty>('중');
   const [count, setCount] = useState(5);
@@ -31,6 +33,38 @@ export default function Generator() {
 
   const topics = useMemo(() => CURRICULUM[level], [level]);
   const isCustom = topic === '__custom__';
+
+  // 직접 입력 자동완성: 현재 학년 단원을 우선 노출하고 나머지 학년 단원을 뒤에 배치
+  const suggestions = useMemo(() => {
+    const q = customTopic.trim();
+    if (!q) return [];
+    const levelMatches = CURRICULUM[level].filter((t) => t.includes(q));
+    const otherMatches = ALL_TOPICS.filter((t) => t.includes(q) && !levelMatches.includes(t));
+    return [...levelMatches, ...otherMatches].filter((t) => t !== q).slice(0, 8);
+  }, [customTopic, level]);
+
+  function pickSuggestion(value: string) {
+    setCustomTopic(value);
+    setSuggestOpen(false);
+    setSuggestIndex(-1);
+  }
+
+  function onCustomKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!suggestOpen || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSuggestIndex((i) => (i + 1) % suggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSuggestIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+    } else if (e.key === 'Enter' && suggestIndex >= 0) {
+      e.preventDefault();
+      pickSuggestion(suggestions[suggestIndex]);
+    } else if (e.key === 'Escape') {
+      setSuggestOpen(false);
+      setSuggestIndex(-1);
+    }
+  }
   const hasApiKey = loadSettings().provider === 'gemini' ? !!loadSettings().geminiApiKey : true;
 
   function changeLevel(l: SchoolLevel) {
@@ -151,12 +185,38 @@ export default function Generator() {
               <option value="__custom__">직접 입력…</option>
             </select>
             {isCustom && (
-              <input
-                type="text"
-                placeholder="예: 이차함수의 최댓값과 최솟값"
-                value={customTopic}
-                onChange={(e) => setCustomTopic(e.target.value)}
-              />
+              <div className="autocomplete">
+                <input
+                  type="text"
+                  placeholder="예: 이차함수의 최댓값과 최솟값"
+                  value={customTopic}
+                  onChange={(e) => {
+                    setCustomTopic(e.target.value);
+                    setSuggestOpen(true);
+                    setSuggestIndex(-1);
+                  }}
+                  onFocus={() => setSuggestOpen(true)}
+                  onBlur={() => setSuggestOpen(false)}
+                  onKeyDown={onCustomKeyDown}
+                />
+                {suggestOpen && suggestions.length > 0 && (
+                  <ul className="suggest-list">
+                    {suggestions.map((s, i) => (
+                      <li
+                        key={s}
+                        className={i === suggestIndex ? 'suggest-item active' : 'suggest-item'}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          pickSuggestion(s);
+                        }}
+                        onMouseEnter={() => setSuggestIndex(i)}
+                      >
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             )}
           </div>
         </div>

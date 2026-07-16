@@ -110,6 +110,7 @@ export default function Settings() {
                 onChange={(e) => update('geminiModel', e.target.value)}
               >
                 <option value="gemini-flash-latest">gemini-flash-latest (권장 · 항상 최신)</option>
+                <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite (경량 · 과부하 적음)</option>
                 <option value="gemini-3.5-flash">gemini-3.5-flash (빠름)</option>
                 <option value="gemini-pro-latest">gemini-pro-latest (고품질 · 느림)</option>
                 <option value="gemini-2.5-flash">gemini-2.5-flash (구 계정 전용)</option>

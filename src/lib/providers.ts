@@ -39,13 +39,30 @@ function normalizeProblems(
   return problems.slice(0, count);
 }
 
+/** 일시적 오류(서버 과부하·속도 제한)는 지수 백오프로 자동 재시도 */
+const RETRYABLE_STATUSES = [429, 500, 502, 503, 504];
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  maxRetries = 3,
+): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, init);
+    if (res.ok || attempt >= maxRetries || !RETRYABLE_STATUSES.includes(res.status)) {
+      return res;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** attempt));
+  }
+}
+
 async function callGemini(prompt: string, settings: AppSettings): Promise<string> {
   if (!settings.geminiApiKey) {
     throw new Error('Gemini API 키가 설정되지 않았습니다. 설정 메뉴에서 API 키를 입력하세요.');
   }
   const model = settings.geminiModel || 'gemini-flash-latest';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -67,6 +84,9 @@ async function callGemini(prompt: string, settings: AppSettings): Promise<string
     if (res.status === 429) {
       throw new Error('무료 사용량 한도를 초과했습니다. 잠시 후 다시 시도하세요.');
     }
+    if (res.status === 503) {
+      throw new Error('Gemini 서버가 혼잡합니다. 자동 재시도에도 실패했으니 잠시 후 다시 시도하세요.');
+    }
     throw new Error(`Gemini API 오류 (${res.status}): ${body.slice(0, 200)}`);
   }
   const data = await res.json();
@@ -83,7 +103,7 @@ async function callOpenAICompat(prompt: string, settings: AppSettings): Promise<
   const url = `${settings.compatBaseUrl.replace(/\/+$/, '')}/chat/completions`;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (settings.compatApiKey) headers['Authorization'] = `Bearer ${settings.compatApiKey}`;
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     method: 'POST',
     headers,
     body: JSON.stringify({
