@@ -1,5 +1,6 @@
 import type { ProblemSet } from '../types';
 import { PROBLEM_TYPE_LABEL } from '../types';
+import { saveFile } from './download';
 import { stripMathDelimiters } from './exportText';
 
 export type ExcelMode = 'questions' | 'answers' | 'both';
@@ -59,5 +60,9 @@ export async function exportProblemSetToExcel(set: ProblemSet, mode: ExcelMode):
   const fileName = sanitizeFileName(
     `MathGen_${set.level}_${set.topic}_${EXCEL_MODE_LABEL[mode]}_${date}`,
   );
-  XLSX.writeFile(workbook, `${fileName}.xlsx`);
+  const data = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([data], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  await saveFile(blob, `${fileName}.xlsx`);
 }

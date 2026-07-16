@@ -1,13 +1,15 @@
 import { LEVELS } from '../data/curriculum';
 import type { Difficulty, Problem, ProblemSet, ProblemType, SchoolLevel } from '../types';
+import { saveFile } from './download';
 import { loadHistory, mergeHistory } from './storage';
 
 const VALID_TYPES: ProblemType[] = ['multiple_choice', 'short_answer', 'essay', 'true_false'];
 const VALID_DIFFICULTIES: Difficulty[] = ['하', '중', '상'];
 
 /** 생성 기록 전체를 JSON 파일로 다운로드. 반환값: 백업된 세트 수 */
-export function downloadBackup(): number {
+export async function downloadBackup(): Promise<number> {
   const sets = loadHistory();
+  if (sets.length === 0) return 0;
   const payload = {
     app: 'MathGen',
     version: 1,
@@ -15,12 +17,7 @@ export function downloadBackup(): number {
     sets,
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `MathGen_백업_${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  await saveFile(blob, `MathGen_백업_${new Date().toISOString().slice(0, 10)}.json`);
   return sets.length;
 }
 

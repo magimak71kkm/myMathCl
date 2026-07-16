@@ -40,8 +40,8 @@ export default function Settings() {
     }
   }
 
-  function onBackup() {
-    const count = downloadBackup();
+  async function onBackup() {
+    const count = await downloadBackup();
     setBackupNotice(
       count === 0
         ? '백업할 생성 기록이 없습니다.'
