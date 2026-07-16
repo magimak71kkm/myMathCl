@@ -6,6 +6,7 @@ import type {
   SimilarRequest,
 } from '../types';
 import { buildPrompt, buildSimilarPrompt, parseProblemsJson } from './prompt';
+import { sanitizeSvg } from './svg';
 
 const VALID_TYPES: ProblemType[] = ['multiple_choice', 'short_answer', 'essay', 'true_false'];
 
@@ -24,6 +25,7 @@ function normalizeProblems(
     const question = String(p.question ?? '').trim();
     const answer = String(p.answer ?? '').trim();
     if (!question || !answer) continue;
+    const figure = typeof p.figure === 'string' ? sanitizeSvg(p.figure) : null;
     problems.push({
       id: crypto.randomUUID(),
       type,
@@ -31,6 +33,7 @@ function normalizeProblems(
       choices: Array.isArray(p.choices) ? p.choices.map(String) : undefined,
       answer,
       explanation: String(p.explanation ?? '').trim(),
+      figure: figure ?? undefined,
     });
   }
   if (problems.length === 0) {

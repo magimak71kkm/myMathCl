@@ -18,6 +18,8 @@ export interface Problem {
   choices?: string[];
   answer: string;
   explanation: string;
+  /** 도형·그래프가 필요한 문제의 SVG 코드 (AI 생성, 렌더링 전 정화됨) */
+  figure?: string;
 }
 
 export interface ProblemSet {

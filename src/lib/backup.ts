@@ -2,6 +2,7 @@ import { LEVELS } from '../data/curriculum';
 import type { Difficulty, Problem, ProblemSet, ProblemType, SchoolLevel } from '../types';
 import { saveFile } from './download';
 import { loadHistory, mergeHistory } from './storage';
+import { sanitizeSvg } from './svg';
 
 const VALID_TYPES: ProblemType[] = ['multiple_choice', 'short_answer', 'essay', 'true_false'];
 const VALID_DIFFICULTIES: Difficulty[] = ['하', '중', '상'];
@@ -27,6 +28,7 @@ function sanitizeProblem(raw: unknown): Problem | null {
   const question = String(p.question ?? '').trim();
   const answer = String(p.answer ?? '').trim();
   if (!question || !answer) return null;
+  const figure = typeof p.figure === 'string' ? sanitizeSvg(p.figure) : null;
   return {
     id: typeof p.id === 'string' && p.id ? p.id : crypto.randomUUID(),
     type: VALID_TYPES.includes(p.type as ProblemType) ? (p.type as ProblemType) : 'short_answer',
@@ -34,6 +36,7 @@ function sanitizeProblem(raw: unknown): Problem | null {
     choices: Array.isArray(p.choices) ? p.choices.map(String) : undefined,
     answer,
     explanation: String(p.explanation ?? '').trim(),
+    figure: figure ?? undefined,
   };
 }
 

@@ -239,6 +239,20 @@ input:focus {
   color: #fff;
 }
 
+.problem-figure {
+  margin: 12px 0;
+  text-align: center;
+}
+
+.problem-figure svg {
+  max-width: min(100%, 400px);
+  height: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+}
+
 .count-slider {
   width: 100%;
   max-width: 480px;

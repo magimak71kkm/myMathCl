@@ -27,11 +27,17 @@ ${DIFFICULTY_RULE}
 [출제 규칙]
 1. 반드시 해당 학년 교육과정 범위 내에서만 출제하세요.
 2. 수식은 LaTeX로 작성하고 $...$ 로 감싸세요. 예: $x^2 + 2x + 1 = 0$. JSON 문자열 안이므로 LaTeX 백슬래시는 반드시 두 번 써서 이스케이프하세요. 예: "$\\\\frac{1}{2}x$"
+   이 규칙은 question뿐 아니라 choices의 각 보기, answer, explanation에도 똑같이 적용됩니다. 보기와 정답의 수식도 반드시 $...$ 로 감싸세요. 예: "$\\\\sin 35^\\\\circ$"
 3. 객관식(multiple_choice)은 보기 5개를 만들고, answer에는 정답 보기의 내용을 그대로 쓰세요.
 4. OX형(true_false)은 choices를 ["O", "X"]로 하고 answer는 "O" 또는 "X"로 쓰세요.
 5. 단답형(short_answer)과 서술형(essay)은 choices를 생략하세요.
 6. 모든 문제에 상세한 풀이 과정(explanation)을 포함하세요.
 7. 계산이 실제로 맞는지 반드시 검산한 후 출제하세요.
+8. 도형(기하)이나 함수 그래프를 보고 풀어야 하는 문제는 figure 필드에 SVG 코드를 넣으세요.
+   - viewBox="0 0 320 240"을 기준으로 그리고, 선은 stroke="#333" stroke-width="1.5", 채움은 fill="none" 또는 옅은 색을 쓰세요.
+   - 꼭짓점·변의 길이·각도 라벨은 <text font-size="13">으로 표기하고, 함수 그래프에는 x축·y축·원점 O·주요 눈금 값을 표시하세요.
+   - 그림의 수치와 형태는 문제 조건 및 정답과 정확히 일치해야 합니다.
+   - 그림이 필요 없는 문제는 figure 필드를 아예 생략하세요.
 
 [출력 형식]
 아래 JSON 배열 형식으로만 응답하세요. 다른 텍스트나 마크다운 코드블록 없이 순수 JSON만 출력하세요.
@@ -41,7 +47,8 @@ ${DIFFICULTY_RULE}
     "question": "문제 내용",
     "choices": ["보기1", "보기2", "보기3", "보기4", "보기5"],
     "answer": "정답",
-    "explanation": "상세 풀이"
+    "explanation": "상세 풀이",
+    "figure": "<svg viewBox=\\"0 0 320 240\\">...</svg> (도형·그래프 문제에만 포함, 그 외 생략)"
   }
 ]`;
 }
@@ -54,7 +61,8 @@ const JSON_FORMAT_RULE = `[출력 형식]
     "question": "문제 내용",
     "choices": ["보기1", "보기2", "보기3", "보기4", "보기5"],
     "answer": "정답",
-    "explanation": "상세 풀이"
+    "explanation": "상세 풀이",
+    "figure": "<svg viewBox=\\"0 0 320 240\\">...</svg> (도형·그래프 문제에만 포함, 그 외 생략)"
   }
 ]`;
 
@@ -65,6 +73,7 @@ export function buildSimilarPrompt(req: SimilarRequest): string {
       lines.push(`   문제: ${p.question}`);
       if (p.choices && p.choices.length > 0) lines.push(`   보기: ${p.choices.join(' / ')}`);
       lines.push(`   정답: ${p.answer}`);
+      if (p.figure) lines.push(`   도형(SVG): ${p.figure}`);
       return lines.join('\n');
     })
     .join('\n');
@@ -80,8 +89,10 @@ export function buildSimilarPrompt(req: SimilarRequest): string {
 - 각 변형 문제의 type은 그 원본 문제의 type과 같게 하세요.
 - 변형 문제의 정답이 원본 정답과 같아지지 않도록 값을 고르고, 계산이 맞는지 반드시 검산하세요.
 - 수식은 LaTeX로 작성하고 $...$ 로 감싸세요. JSON 문자열 안이므로 LaTeX 백슬래시는 반드시 두 번 써서 이스케이프하세요. 예: "$\\\\frac{1}{2}x$"
+- question·choices·answer·explanation 모든 필드에서 수식은 예외 없이 $...$ 로 감싸세요.
 - 객관식은 보기 5개, OX형은 choices를 ["O","X"]로, 단답형/서술형은 choices 생략.
 - 모든 문제에 상세 풀이(explanation)를 포함하세요.
+- 원본에 도형(SVG)이 있으면 변형된 수치·조건에 맞게 SVG를 새로 그려 figure 필드에 포함하세요. 그림의 수치는 새 문제의 조건과 정확히 일치해야 합니다.
 - 변형 무작위 시드: ${Math.floor(Math.random() * 1_000_000)}
 
 [원본 문제]

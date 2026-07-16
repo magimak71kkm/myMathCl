@@ -36,6 +36,13 @@ export default function ProblemCard({
       <div className="problem-question">
         <MathText text={problem.question} />
       </div>
+      {problem.figure && (
+        <div
+          className="problem-figure"
+          // AI 생성 SVG — normalizeProblems에서 sanitizeSvg로 정화된 코드만 저장됨
+          dangerouslySetInnerHTML={{ __html: problem.figure }}
+        />
+      )}
       {problem.choices && problem.choices.length > 0 && (
         <ol className="choices">
           {problem.choices.map((c, i) => (
