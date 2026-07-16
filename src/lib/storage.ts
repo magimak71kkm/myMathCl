@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   compatBaseUrl: 'https://openrouter.ai/api/v1',
   compatApiKey: '',
   compatModel: '',
+  academyName: '',
 };
 
 export function loadSettings(): AppSettings {
@@ -45,6 +46,15 @@ export function saveProblemSet(set: ProblemSet): void {
   const history = loadHistory();
   history.unshift(set);
   // 저장 용량 보호: 최근 200세트까지만 보관
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 200)));
+}
+
+/** 문제 편집·교체 후 세트를 제자리에서 갱신 (기록에 없으면 새로 추가) */
+export function updateProblemSet(set: ProblemSet): void {
+  const history = loadHistory();
+  const idx = history.findIndex((s) => s.id === set.id);
+  if (idx === -1) history.unshift(set);
+  else history[idx] = set;
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 200)));
 }
 

@@ -204,6 +204,18 @@ input:focus {
   gap: 8px;
 }
 
+.key-ok {
+  color: #16a34a;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+.sidebar-updated {
+  margin-top: 4px;
+  font-size: 11.5px;
+  opacity: 0.75;
+}
+
 .autocomplete {
   position: relative;
   width: 100%;
@@ -706,6 +718,121 @@ input:focus {
   background: var(--bg);
 }
 
+/* ── 난이도 혼합 출제 ─────────────── */
+.mix-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.mix-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mix-item input {
+  width: 72px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.mix-label {
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.mix-하 { background: #dcfce7; color: #166534; }
+.mix-중 { background: #fef9c3; color: #854d0e; }
+.mix-상 { background: #fee2e2; color: #991b1b; }
+
+.mix-over { color: #dc2626; font-weight: 600; }
+
+/* ── 문제 편집 도구 ───────────────── */
+.problem-tools {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.tool-btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 8px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tool-btn:hover { border-color: var(--primary); }
+.tool-btn:disabled { opacity: 0.5; cursor: default; }
+.tool-danger:hover { border-color: #dc2626; }
+
+.points-badge {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.edit-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.edit-form textarea:focus { outline: none; border-color: var(--primary); }
+
+.points-input { max-width: 100px; }
+
+/* ── 문제 은행 ────────────────────── */
+.bank-bar {
+  border: 1.5px solid var(--primary);
+  background: #f5f3ff;
+}
+
+.bank-info { margin-bottom: 10px; }
+
+.bank-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bank-controls input { max-width: 280px; }
+
+.two-col-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* 화면에서는 정답 토글에 따라 숨김 (인쇄 모드에서 CSS로 제어하기 위해 DOM에는 유지) */
+.answer-box.screen-hidden {
+  display: none;
+}
+
 /* ── 인쇄 ─────────────────────────── */
 .print-only {
   display: none;
@@ -750,6 +877,72 @@ input:focus {
 
   .page-title {
     display: none;
+  }
+
+  /* 문제지 인쇄: 정답·풀이 숨김 */
+  body.print-questions .answer-box {
+    display: none !important;
+  }
+
+  /* 해설지 인쇄: 화면 표시 여부와 무관하게 정답·풀이 표시 */
+  body.print-answers .answer-box,
+  body.print-answers .answer-box.screen-hidden {
+    display: block !important;
+  }
+
+  /* 시험지 머리글 */
+  .exam-header {
+    border-bottom: 2px solid #000;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    break-inside: avoid;
+  }
+
+  .exam-academy {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #444;
+  }
+
+  .exam-title {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 4px 0 6px;
+  }
+
+  .exam-meta {
+    font-size: 12.5px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+
+  .exam-fields {
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    border: 1px solid #000;
+    padding: 8px 12px;
+    justify-content: space-between;
+  }
+
+  /* 2단 인쇄 (실제 시험지 배치) */
+  body.print-two-col .problem-list {
+    column-count: 2;
+    column-gap: 28px;
+  }
+
+  body.print-two-col .problem-card {
+    break-inside: avoid;
+  }
+
+  body.print-two-col .problem-figure svg {
+    max-width: 100%;
+  }
+
+  /* 인쇄 시 편집 도구·난이도 배지 등은 no-print로 이미 숨겨짐 */
+  .history-card {
+    border: none;
+    box-shadow: none;
   }
 }
 

@@ -37,6 +37,10 @@ function sanitizeProblem(raw: unknown): Problem | null {
     answer,
     explanation: String(p.explanation ?? '').trim(),
     figure: figure ?? undefined,
+    difficulty: VALID_DIFFICULTIES.includes(p.difficulty as Difficulty)
+      ? (p.difficulty as Difficulty)
+      : undefined,
+    points: typeof p.points === 'number' && p.points > 0 ? p.points : undefined,
   };
 }
 
@@ -57,6 +61,7 @@ function sanitizeSet(raw: unknown): ProblemSet | null {
     difficulty: VALID_DIFFICULTIES.includes(s.difficulty as Difficulty)
       ? (s.difficulty as Difficulty)
       : '중',
+    title: typeof s.title === 'string' && s.title.trim() ? s.title.trim() : undefined,
     types,
     problems,
   };

@@ -1,5 +1,5 @@
 import type { Problem, ProblemSet } from '../types';
-import { PROBLEM_TYPE_LABEL } from '../types';
+import { difficultyLabel, PROBLEM_TYPE_LABEL } from '../types';
 
 const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
 
@@ -30,7 +30,7 @@ export function problemSetSubject(set: ProblemSet): string {
 
 export function problemSetToText(set: ProblemSet, includeAnswers: boolean): string {
   const header = [
-    `${set.level} · ${set.topic} · 난이도 ${set.difficulty} · ${set.problems.length}문제`,
+    `${set.title ? `${set.title} — ` : ''}${set.level} · ${set.topic} · 난이도 ${difficultyLabel(set)} · ${set.problems.length}문제`,
     `생성일: ${new Date(set.createdAt).toLocaleString('ko-KR')}`,
     includeAnswers ? '(정답/풀이 포함)' : '(문제만 · 정답 미포함)',
     '',

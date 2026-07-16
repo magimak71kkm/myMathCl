@@ -38,7 +38,10 @@ export default function App() {
               </NavLink>
             ))}
           </nav>
-          <div className="sidebar-foot">중학교 · 고등학교 전 학년 지원</div>
+          <div className="sidebar-foot">
+            중학교 · 고등학교 전 학년 지원
+            <div className="sidebar-updated">업데이트: {__BUILD_DATE__}</div>
+          </div>
         </aside>
         <main className="content">
           <Routes>

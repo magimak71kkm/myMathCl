@@ -5,4 +5,10 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   base: './',
+  define: {
+    // 한국 시간 기준 빌드 날짜 (사이드바 "업데이트" 표기용)
+    __BUILD_DATE__: JSON.stringify(
+      new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date()),
+    ),
+  },
 });

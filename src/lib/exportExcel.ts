@@ -18,6 +18,8 @@ function buildRows(set: ProblemSet, mode: ExcelMode): Record<string, string | nu
     const row: Record<string, string | number> = {
       번호: i + 1,
       유형: PROBLEM_TYPE_LABEL[p.type],
+      난이도: p.difficulty ?? set.difficulty,
+      배점: p.points ?? '',
     };
     if (mode !== 'answers') {
       row['문제'] = stripMathDelimiters(p.question);

@@ -86,6 +86,16 @@ export default function Settings() {
           </div>
         </div>
 
+        <div className="form-row">
+          <label className="form-label">학원명 (시험지 머리글에 인쇄)</label>
+          <input
+            type="text"
+            placeholder="예: OO수학학원"
+            value={settings.academyName}
+            onChange={(e) => update('academyName', e.target.value)}
+          />
+        </div>
+
         {settings.provider === 'gemini' ? (
           <>
             <div className="form-row">

@@ -1,11 +1,13 @@
 import type {
   AppSettings,
+  Difficulty,
   GenerateRequest,
   Problem,
   ProblemType,
+  SchoolLevel,
   SimilarRequest,
 } from '../types';
-import { buildPrompt, buildSimilarPrompt, parseProblemsJson } from './prompt';
+import { buildPrompt, buildReplacePrompt, buildSimilarPrompt, parseProblemsJson } from './prompt';
 import { sanitizeSvg } from './svg';
 
 const VALID_TYPES: ProblemType[] = ['multiple_choice', 'short_answer', 'essay', 'true_false'];
@@ -139,6 +141,23 @@ export async function generateProblems(
 ): Promise<Problem[]> {
   const raw = await callAI(buildPrompt(req), settings);
   return normalizeProblems(raw, req.types[0], req.count);
+}
+
+/** 마음에 안 드는 문제 1개를 같은 조건의 새 문제로 교체 */
+export async function regenerateProblem(
+  ctx: {
+    level: SchoolLevel;
+    topic: string;
+    difficulty: Difficulty;
+    type: ProblemType;
+    existingQuestions: string[];
+  },
+  settings: AppSettings,
+): Promise<Problem> {
+  const raw = await callAI(buildReplacePrompt(ctx), settings);
+  const [problem] = normalizeProblems(raw, ctx.type, 1);
+  problem.difficulty = ctx.difficulty;
+  return problem;
 }
 
 /** 선택한 원본 문제들을 무작위 변형한 유사 문제 생성 */

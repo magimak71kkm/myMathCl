@@ -1,4 +1,4 @@
-import type { Difficulty, GenerateRequest, SimilarRequest } from '../types';
+import type { Difficulty, GenerateRequest, ProblemType, SimilarRequest } from '../types';
 import { PROBLEM_TYPE_LABEL } from '../types';
 
 const DIFFICULTY_GUIDE: Record<Difficulty, string> = {
@@ -65,6 +65,38 @@ const JSON_FORMAT_RULE = `[출력 형식]
     "figure": "<svg viewBox=\\"0 0 320 240\\">...</svg> (도형·그래프 문제에만 포함, 그 외 생략)"
   }
 ]`;
+
+/** 마음에 안 드는 문제 1개를 같은 조건의 새 문제로 교체하는 프롬프트 */
+export function buildReplacePrompt(req: {
+  level: string;
+  topic: string;
+  difficulty: Difficulty;
+  type: ProblemType;
+  existingQuestions: string[];
+}): string {
+  const existing = req.existingQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n');
+  return `당신은 한국 수학 교육과정 전문 출제위원입니다. 아래 조건에 맞는 수학 문제를 정확히 1개만 출제하세요.
+
+[출제 조건]
+- 학년: ${req.level} (한국 교육과정 기준)
+- 단원/주제: ${req.topic}
+- 난이도: ${req.difficulty} — ${DIFFICULTY_GUIDE[req.difficulty]}
+- 문제 유형: ${PROBLEM_TYPE_LABEL[req.type]} (type: "${req.type}")
+- ${DIFFICULTY_RULE}
+
+[교체 규칙]
+- 아래 [기존 문제]와 소재·수치·풀이 방식이 겹치지 않는 완전히 새로운 문제를 출제하세요.
+- 수식은 LaTeX로 작성하고 $...$ 로 감싸세요. question·choices·answer·explanation 모두 적용. JSON 문자열 안이므로 백슬래시는 두 번 이스케이프 ("$\\\\frac{1}{2}$").
+- 객관식은 보기 5개, OX형은 choices를 ["O","X"]로, 단답형/서술형은 choices 생략.
+- 상세 풀이(explanation)를 포함하고 계산을 반드시 검산하세요.
+- 도형·그래프가 필요하면 figure에 SVG(viewBox="0 0 320 240")를 넣으세요.
+
+[기존 문제]
+${existing}
+
+${JSON_FORMAT_RULE}
+(배열에 문제 1개만 담으세요)`;
+}
 
 export function buildSimilarPrompt(req: SimilarRequest): string {
   const seedList = req.seeds
