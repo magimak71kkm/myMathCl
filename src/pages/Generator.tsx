@@ -128,30 +128,65 @@ export default function Generator() {
     try {
       const settings = loadSettings();
       const active = DIFFICULTIES.filter((d) => mix[d] > 0);
+
+      // 속도 개선: 요청을 난이도별·8문항 단위로 쪼개 병렬로 생성한다
+      const jobs: { difficulty: Difficulty; count: number }[] = [];
+      for (const d of active) {
+        let remaining = mix[d];
+        while (remaining > 0) {
+          const n = Math.min(8, remaining);
+          jobs.push({ difficulty: d, count: n });
+          remaining -= n;
+        }
+      }
+      setProgress(
+        jobs.length > 1
+          ? `${totalCount}문항 생성 중… (${jobs.length}개 요청 동시 처리)`
+          : '문제 생성 중… (10~30초 소요)',
+      );
+      const results = await Promise.allSettled(
+        jobs.map((job) =>
+          generateProblems(
+            { level, topic: finalTopic, types, difficulty: job.difficulty, count: job.count },
+            settings,
+          ),
+        ),
+      );
       const problems: Problem[] = [];
-      for (const [i, d] of active.entries()) {
-        setProgress(
-          active.length > 1
-            ? `난이도 '${d}' ${mix[d]}문항 생성 중… (${i + 1}/${active.length})`
-            : `문제 생성 중… (10~30초 소요)`,
+      let failedCount = 0;
+      results.forEach((r, i) => {
+        if (r.status === 'fulfilled') {
+          for (const p of r.value) p.difficulty = jobs[i].difficulty;
+          problems.push(...r.value);
+        } else {
+          failedCount += jobs[i].count;
+        }
+      });
+      if (problems.length === 0) {
+        const firstError = results.find(
+          (r): r is PromiseRejectedResult => r.status === 'rejected',
+        )?.reason;
+        throw firstError instanceof Error
+          ? firstError
+          : new Error('문제 생성 중 오류가 발생했습니다.');
+      }
+      if (failedCount > 0) {
+        setError(
+          `일부 요청이 실패해 ${totalCount}문항 중 ${problems.length}문항만 생성되었습니다. 부족한 문항은 잠시 후 추가 생성해 주세요.`,
         );
-        const part = await generateProblems(
-          { level, topic: finalTopic, types, difficulty: d, count: mix[d] },
-          settings,
-        );
-        for (const p of part) p.difficulty = d;
-        problems.push(...part);
       }
       assignPoints(problems);
-      // 대표 난이도: 문항 수가 가장 많은 난이도
-      const dominant = active.reduce((a, b) => (mix[a] >= mix[b] ? a : b));
+      // 실제 생성된 문항 기준 난이도 구성 (일부 실패 시 지정값과 다를 수 있음)
+      const actualMix: DifficultyMix = { 하: 0, 중: 0, 상: 0 };
+      for (const p of problems) actualMix[p.difficulty ?? '중']++;
+      const dominant = DIFFICULTIES.reduce((a, b) => (actualMix[a] >= actualMix[b] ? a : b));
       const set: ProblemSet = {
         id: crypto.randomUUID(),
         createdAt: Date.now(),
         level,
         topic: finalTopic,
         difficulty: dominant,
-        difficultyMix: { ...mix },
+        difficultyMix: actualMix,
         title: examTitle.trim() || undefined,
         types,
         problems,
